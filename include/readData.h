@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "errorMsg.h"
+#include "basicFunc.h"
 
 typedef struct Matrix
 {
@@ -27,6 +28,7 @@ typedef struct Matrix
 Matrix *initMatrix(char *fileName);
 
 FILE *openFile(char *fileName, char *permissions);
+
 FILE *closeFile(FILE *fileName);
 
 /*

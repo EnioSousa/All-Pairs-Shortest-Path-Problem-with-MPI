@@ -29,20 +29,6 @@ Matrix *newMatrix(int size);
 */
 Matrix *readMatrixData(Matrix *matrix, FILE *inFile);
 
-/*
-    Function: Alocates space for a bidimensional array
-    --------------------------------------------------
-    Will dynamically allocate space for a bi array and initiate it with a 
-    default value
-
-    size: size of the bi array (size x size)
-    defaultValue: default value for the array
-
-    Returns: pointer to a bi array
-*/
-int **initBiArray(int size, int defaultValue);
-
-void printBiArray(int **biArray, int n, int m);
 
 /*
     ========================= Implementation =========================
@@ -92,26 +78,9 @@ Matrix *newMatrix(int size)
 
     matrix->size = size;
 
-    matrix->data = initBiArray(size, 0);
+    matrix->data = newBiArray(size, 0);
 
     return matrix;
-}
-
-int **initBiArray(int size, int defaultValue)
-{
-    int **biArray = (int **)malloc(size * sizeof(int *));
-    checkAlloc(biArray, "initbiArray", "biArray");
-
-    for (int i = 0; i < size; i++)
-    {
-        biArray[i] = (int *)malloc(size * sizeof(int));
-        checkAlloc(biArray, "initBiArray", "biArray[index]");
-
-        for (int j = 0; j < size; j++)
-            biArray[i][j] = defaultValue;
-    }
-
-    return biArray;
 }
 
 Matrix *readMatrixData(Matrix *matrix, FILE *inFile)
@@ -141,20 +110,4 @@ void toStringMatrix(Matrix *matrix)
 
         printf("\n");
     }
-}
-
-void printBiArray(int **biArray, int n, int m)
-{
-    printf("PRINT BI ARRAY:\n");
-
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < m; j++)
-        {
-            printf("%d ", biArray[i][j]);
-        }
-
-        printf("\n");
-    }
-    printf("\n");
 }

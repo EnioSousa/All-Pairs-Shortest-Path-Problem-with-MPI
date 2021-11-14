@@ -1,12 +1,23 @@
-SRC_DIR := src # source directory
-OBJ_DIR := obj # Object directory (*.o)
-BIN_DIR := bin # Executables directory
-INCLUDE_DIR := include # Headers file directory
+ # source directory
+SRC_DIR := src
+ # Object directory (*.o)
+OBJ_DIR := obj
+ # Executables directory
+BIN_DIR := bin
+ # Headers file directory
+INCLUDE_DIR := include
+# Executable path name
+EXE := $(BIN_DIR)/fox
 
-CC = gcc # Compiler program
-CFLAGS := -I$(INCLUDE_DIR) # Include directories in search path
- 
-EXE := $(BIN_DIR)/fox # Executable path name
+# Compiler program
+CC := mpicc
+# Include directories in search path
+CFLAGS := -I$(INCLUDE_DIR)
+LFLAGS := -lm
+
+# How to run
+RP := mpirun
+RFLAGS := --oversubscribe -np 9
 
 SRC := $(wildcard $(SRC_DIR)/*.c)
 DEP := $(wildcard $(INCLUDE_DIR)/*.h)
@@ -14,17 +25,18 @@ OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 .PHONY: all compile clean run
 
-all: compile run # Compile and run
+ # Compile and run
+all: compile run
 
 run:
-	./$(EXE)
+	$(RP) $(RFLAGS) ./$(EXE) 
 
 compile: $(EXE)
 
 # Link the object files into a executable. Also checks if 
 # the object directory exists, if not creates it
 $(EXE): $(OBJ) | $(OBJ_DIR)
-	$(CC) $^ -o $@
+	$(CC) $^ -o $@ $(LFLAGS)
 
 # Generate the object file without linking 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(DEP)
