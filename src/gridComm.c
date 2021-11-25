@@ -21,7 +21,9 @@ GridInfoType* newGrid()
 
     setUpGrid(grid);   
 
+#if VERBOSE 
     seeGridDef(grid);
+#endif
 
     return grid; 
 }
@@ -84,8 +86,14 @@ GridInfoType* setRowColCommunicators(GridInfoType *grid)
     return grid;
 }
 
+/*
+    If you try to print new lines you WILL mess up the output, since some process
+    will try to write at the same. Specially with memory accesses the cpu will
+    give way to another process when it writes a new line. Weird stuff do not
+    write new lines with mpis
+*/
 void seeGridDef(GridInfoType *grid)
 {
-    printf("nProc: %d \nCartRank: %d \nRow: %d \ncol: %d\n\n", grid->p, 
+    printf("CartRank: %d Row: %d col: %d\n", 
             grid->myRank, grid->myRow, grid->myCol);
 }

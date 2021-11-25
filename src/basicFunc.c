@@ -47,3 +47,63 @@ void printArray(int *array, int n)
 
     printf("\n");
 }
+
+Matrix *newMatrix(int nRow, int nCol, int defaultValue)
+{
+    Matrix *matrix = (Matrix *)malloc(sizeof(matrix));
+    checkAlloc(matrix, "newMatrix", "matrix");
+
+    matrix->data = newArray(nRow * nCol, defaultValue);
+    matrix->nRow = nRow;
+    matrix->nCol = nCol;
+
+    return matrix;
+}
+
+int *getMatrixPos(Matrix *matrix, int row, int col)
+{
+    checkAlloc(matrix, "getMatrixPos", "matrix");
+
+    if (row >= matrix->nRow || col >= matrix->nCol)
+    {
+        fprintf(stderr, "getMatrixPos: Tried to access invalid position (%d, %d)",
+                row, col);
+        return NULL;
+    }
+
+    else
+        return &matrix->data[row * matrix->nRow + col];
+}
+
+int *setMatrixPos(Matrix *matrix, int row, int col, int value)
+{
+    checkAlloc(matrix, "getMatrixPos", "matrix");
+
+    int *pos = getMatrixPos(matrix, row, col);
+
+    if (pos == NULL)
+        return NULL;
+
+    else
+    {
+        *pos = value;
+        return pos;
+    }
+}
+
+void printMatrix(Matrix *matrix)
+{
+    printf("Matrix %dx%d:\n", matrix->nRow, matrix->nCol);
+
+    for (int i = 0; i < matrix->nRow; i++)
+    {
+        for (int j = 0; j < matrix->nCol; j++)
+            printf("%5d ", *getMatrixPos(matrix, i, j));
+
+        printf("\n");
+    }
+
+    printf("\n");
+}
+
+

@@ -5,17 +5,6 @@
 /*
     ========================= Local declaration =========================
 */
-/*
-    Function: Matrix stucture allocation
-    ------------------------------
-    Allocates space from a Matrix object and returns the pointer
-
-    size: Number of lines in the matrix. Nº of lines is equal to the number
-          columns
-
-    Returns: Matrix structure, initialized with zeros
-*/
-Matrix *newMatrix(int size);
 
 /* 
     Function: Read matrix data from a file
@@ -55,30 +44,18 @@ FILE *closeFile(FILE *fileName)
         fclose(fileName);
 }
 
-Matrix *initMatrix(char *fileName)
+Matrix* readData(char *fileName)
 {
     FILE *inFile = openFile(fileName, "r");
 
     int size = 0;
     fscanf(inFile, "%d", &size);
 
-    Matrix *matrix = newMatrix(size);
+    Matrix *matrix = newMatrix(size, size, 0);
 
     readMatrixData(matrix, inFile);
 
     closeFile(inFile);
-
-    return matrix;
-}
-
-Matrix *newMatrix(int size)
-{
-    Matrix *matrix = (Matrix *)calloc(1, sizeof(Matrix));
-    checkAlloc(matrix, "newMatrix", "matrix");
-
-    matrix->size = size;
-
-    matrix->data = newBiArray(size, 0);
 
     return matrix;
 }
@@ -88,26 +65,12 @@ Matrix *readMatrixData(Matrix *matrix, FILE *inFile)
     checkNullPointer(inFile, "readMatrixData", "inFile");
     checkNullPointer(matrix, "readMatrixData", "matrix");
 
-    for (int i = 0; i < matrix->size; i++)
+    for (int i = 0; i < matrix->nRow; i++)
     {
-        for (int j = 0; j < matrix->size; j++)
+        for (int j = 0; j < matrix->nCol; j++)
         {
-            fscanf(inFile, "%d", &matrix->data[i][j]);
+            fscanf(inFile, "%d", getMatrixPos(matrix, i, j));
         }
     }
 }
 
-void toStringMatrix(Matrix *matrix)
-{
-    printf("Matrix size: %d\n", matrix->size);
-
-    for (int i = 0; i < matrix->size; i++)
-    {
-        for (int j = 0; j < matrix->size; j++)
-        {
-            printf("%d ", matrix->data[i][j]);
-        }
-
-        printf("\n");
-    }
-}

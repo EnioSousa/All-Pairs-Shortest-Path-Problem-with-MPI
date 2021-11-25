@@ -6,6 +6,7 @@
 #include "errorMsg.h"
 #include "basicFunc.h"
 #include "math.h"
+#include "main.h"
 
 /*
     p:          Total number of processes
