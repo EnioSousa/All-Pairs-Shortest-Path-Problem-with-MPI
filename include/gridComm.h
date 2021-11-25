@@ -1,5 +1,5 @@
 #ifndef GRIDCOMM
-#define GRIDCOOM
+#define GRIDCOMM
 
 #include <mpi.h>
 
@@ -7,50 +7,48 @@
 #include "basicFunc.h"
 #include "math.h"
 
-#define PERIODIC 1
-#define NONPERIODIC 0
-#define NONVALUE -1
-
 /*
-    cartComm: Comunication channel for the cart
-    rowComm: Comunications channel for the the process row
-    colComm: Communication channel for the process column
-
-    globalRank: Process global rank
-    cartRank: Process cart rank
-    
-    nDim: Number of dimensions in the grid
-    isWrap: Specifies if the dimensions are periodical or not, i.e., 
-            if the last process of each dimension communicates or not 
-            with the first process in the same dimension
-    dim: specifies the number of processes in each dimension of the grid
-
-    coordinates: Cart Coordinates for the process
+    p:          Total number of processes
+    comm:       Communicator for the entire grid
+    rowComm:   Communicator for my row
+    colComm:   Communicator for my col
+    q:         Order of grid
+    myRow:     My row number
+    myCol:     My col number
+    myRank:    My rank in the grid communicator
 */
-typedef struct CommData
+typedef struct
 {
-    MPI_Comm cartComm;
-    MPI_Comm rowComm; 
+    int p;
+
+    MPI_Comm comm;
+    MPI_Comm rowComm;
     MPI_Comm colComm;
 
-    int cartRank;
-    int globalRank;
-    int rowRank;
-    int colRank; 
+    int q;
+    int myRow;
+    int myCol;
+    int myRank;
 
-    int nDim;
-    int nProc;
-    
-    int *isWrap; 
-    int *dim;
+} GridInfoType;
 
-    int *coordinates;
-    int rowSize;
-    int colSize;
+/*
+    Function: Allocates and initiates a new GridInfoType objects
+    ---------------------------------------------------------------------------
+    Dinamically allocates space for a new GridInfoType object and initiates the
+    communicators
 
-}CommData;
+    Returns: Pointer to the new GridInfoType object
+*/
+GridInfoType* newGrid();
 
-CommData *newCommData();
-void freeCommData(CommData *commData);
+/*
+    Function: Free memory allocated for GridInfoType object
+    ---------------------------------------------------------------------------
+    Free memory and communicators
+
+    Return: void
+*/
+void freeGrid(GridInfoType *grid);
 
 #endif

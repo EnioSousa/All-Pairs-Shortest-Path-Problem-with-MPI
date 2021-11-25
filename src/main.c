@@ -19,10 +19,10 @@ int main(int argc, char **argv)
     printf("World %d: starting\n", globalRank);
     MPI_Barrier(MPI_COMM_WORLD);
 
-    CommData *commData = newCommData();
+    GridInfoType *grid = newGrid();
     MPI_Barrier(MPI_COMM_WORLD);
 
-    freeCommData(commData);
+    freeGrid(grid);
 
     MPI_Finalize();
 }

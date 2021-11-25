@@ -1,86 +1,91 @@
 #include "gridComm.h"
 
 /*
-    ========================= Local declaration =========================
+Local Declarations
+===============================================================================
 */
-void initGrid(CommData *commData);
-void newCartCommChl(CommData *commData);
-void newSubCartCommChl(CommData *commData);
-void testStuff(CommData *commData);
+GridInfoType* setUpGrid(GridInfoType *grid);
+GridInfoType *setGlobalGrid(GridInfoType *grid);
+GridInfoType* setRowColCommunicators(GridInfoType *grid);
+
+void seeGridDef(GridInfoType *grid);
 
 /*
-    ========================= Implementation =========================
+Implementation
+===============================================================================
 */
-CommData *newCommData()
+GridInfoType* newGrid()
 {
-    CommData *commData = (CommData *)malloc(sizeof(CommData));
-    checkAlloc(commData, "initGird", "girdData");
+    GridInfoType *grid = (GridInfoType*)malloc(sizeof(GridInfoType));
+    checkAlloc(grid, "newGrid", "grid");
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &commData->globalRank);
-    MPI_Comm_size(MPI_COMM_WORLD, &commData->nProc);
+    setUpGrid(grid);   
 
-    initGrid(commData);
+    seeGridDef(grid);
 
-    newCartCommChl(commData);
-    newSubCartCommChl(commData);
-
-    testStuff(commData);
-    return commData;
+    return grid; 
 }
 
-void initGrid(CommData *commData)
+void freeGrid(GridInfoType *grid)
 {
-    commData->nDim = 2;
-    commData->isWrap = newArray(commData->nDim, PERIODIC);
-    commData->dim = newArray(commData->nDim, (int)sqrt((double)commData->nProc));
-    commData->coordinates = newArray(commData->nDim, NONVALUE);
+    MPI_Comm_free(&grid->colComm);
+    MPI_Comm_free(&grid->rowComm);
+    MPI_Comm_free(&grid->comm);
+
+    free(grid);
 }
 
-void newCartCommChl(CommData *commData)
+GridInfoType* setUpGrid(GridInfoType *grid)
 {
-    // Create cart comm
-    MPI_Cart_create(MPI_COMM_WORLD, commData->nDim, commData->dim,
-                    commData->isWrap, 1, &commData->cartComm);
+    return setRowColCommunicators(setGlobalGrid(grid));
+}
 
-    // Get current process cart rank
-    MPI_Comm_rank(commData->cartComm, &commData->cartRank);
+GridInfoType *setGlobalGrid(GridInfoType *grid)
+{
+    checkNullPointer(grid, "setGlobalGrid", "grid");
 
-    // Get current process coordinates
-    MPI_Cart_coords(commData->cartComm, commData->cartRank,
-                    commData->nDim, commData->coordinates);
+    int oldRank;
+    int periods[2] = {1, 1};
+    int dimensions[2];
+    int coordinates[2];
+
+    MPI_Comm_size(MPI_COMM_WORLD, &(grid->p));
+    MPI_Comm_rank(MPI_COMM_WORLD, &oldRank);
+
+    grid->q = (int)sqrt((double)grid->p);
+    dimensions[0] = dimensions[1] = grid->q;
+
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dimensions, periods,
+                    1, &(grid->comm));
+
+    MPI_Comm_rank(grid->comm, &(grid->myRank));
+    MPI_Cart_coords(grid->comm, grid->myRank, 2, coordinates);
+
+    grid->myRow = coordinates[0];
+    grid->myCol = coordinates[1];
 
     MPI_Barrier(MPI_COMM_WORLD);
+
+    return grid;
 }
 
-void newSubCartCommChl(CommData *commData)
+GridInfoType* setRowColCommunicators(GridInfoType *grid)
 {
-    int temp0[2] = {0, 1};
-    MPI_Cart_sub(commData->cartComm, temp0, &commData->rowComm);
+    checkNullPointer(grid, "setRowColCommunicators", "grid");
 
-    int temp1[2] = {1, 0};
-    MPI_Cart_sub(commData->cartComm, temp1, &commData->colComm);
+    int indicateRow[2] = {0,1};
 
-    MPI_Comm_size(commData->rowComm, &commData->rowSize);
-    MPI_Comm_size(commData->colComm, &commData->colSize);
+    MPI_Cart_sub(grid->comm, indicateRow, &grid->rowComm);
 
-    MPI_Comm_rank(commData->rowComm, &commData->rowRank);
-    MPI_Comm_rank(commData->colComm, &commData->colRank);
+    int indicateCol[2] = {1, 0};
+
+    MPI_Cart_sub(grid->comm, indicateCol, &grid->colComm);
+
+    return grid;
 }
 
-void freeCommData(CommData *commData)
+void seeGridDef(GridInfoType *grid)
 {
-    MPI_Comm_free(&commData->cartComm);
- 
-    free(commData->isWrap);
-    free(commData->dim);
-    free(commData->coordinates);
-
-    free(commData);
-}
-
-void testStuff(CommData *commData)
-{
-    printf("World %d Cart %d Row %d Col %d Coord (%d, %d)\n", commData->globalRank,
-            commData->cartRank, commData->rowRank, commData->colRank, 
-            commData->coordinates[0],commData->coordinates[1]);
+    printf("nProc: %d \nCartRank: %d \nRow: %d \ncol: %d\n\n", grid->p, 
+            grid->myRank, grid->myRow, grid->myCol);
 }
