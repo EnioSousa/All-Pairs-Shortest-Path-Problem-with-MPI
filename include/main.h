@@ -7,6 +7,6 @@
 #include "gridComm.h"
 
 #define VERBOSE 1
-#define FILENAME "input5"
+#define FILENAME "input6"
 
 #endif

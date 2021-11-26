@@ -10,14 +10,9 @@ typedef struct Matrix
     int *data;
     int nCol;
     int nRow;
+
+    int fullSize;
 }Matrix;
-
-typedef struct String
-{
-    char *data;
-    int size;
-
-}String;
 
 /*
     Function: Matrix stucture allocation
@@ -91,5 +86,8 @@ int *newArray(int size, int defaultValue);
 void printMatrix(Matrix *matrix);
 void printBiArray(int **biArray, int n, int m);
 void printArray(int *array, int n);
+
+void freeBiArray(int **array, int size);
+void freeMatrix(Matrix *matrix);
 
 #endif

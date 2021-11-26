@@ -4,9 +4,9 @@
 Local Declarations
 ===============================================================================
 */
-GridInfoType* setUpGrid(GridInfoType *grid);
+GridInfoType *setUpGrid(GridInfoType *grid);
 GridInfoType *setGlobalGrid(GridInfoType *grid);
-GridInfoType* setRowColCommunicators(GridInfoType *grid);
+GridInfoType *setRowColCommunicators(GridInfoType *grid);
 
 void seeGridDef(GridInfoType *grid);
 
@@ -14,18 +14,18 @@ void seeGridDef(GridInfoType *grid);
 Implementation
 ===============================================================================
 */
-GridInfoType* newGrid()
+GridInfoType *newGrid()
 {
-    GridInfoType *grid = (GridInfoType*)malloc(sizeof(GridInfoType));
+    GridInfoType *grid = (GridInfoType *)malloc(sizeof(GridInfoType));
     checkAlloc(grid, "newGrid", "grid");
 
-    setUpGrid(grid);   
+    setUpGrid(grid);
 
-#if VERBOSE 
+#if VERBOSE
     seeGridDef(grid);
 #endif
 
-    return grid; 
+    return grid;
 }
 
 void freeGrid(GridInfoType *grid)
@@ -37,7 +37,7 @@ void freeGrid(GridInfoType *grid)
     free(grid);
 }
 
-GridInfoType* setUpGrid(GridInfoType *grid)
+GridInfoType *setUpGrid(GridInfoType *grid)
 {
     return setRowColCommunicators(setGlobalGrid(grid));
 }
@@ -71,11 +71,11 @@ GridInfoType *setGlobalGrid(GridInfoType *grid)
     return grid;
 }
 
-GridInfoType* setRowColCommunicators(GridInfoType *grid)
+GridInfoType *setRowColCommunicators(GridInfoType *grid)
 {
     checkNullPointer(grid, "setRowColCommunicators", "grid");
 
-    int indicateRow[2] = {0,1};
+    int indicateRow[2] = {0, 1};
 
     MPI_Cart_sub(grid->comm, indicateRow, &grid->rowComm);
 
@@ -87,13 +87,109 @@ GridInfoType* setRowColCommunicators(GridInfoType *grid)
 }
 
 /*
-    If you try to print new lines you WILL mess up the output, since some process
-    will try to write at the same. Specially with memory accesses the cpu will
-    give way to another process when it writes a new line. Weird stuff do not
-    write new lines with mpis
+    Note: Careful this is parallel computing. You'r going to have multiple
+    processes trying to write at the same time.
 */
 void seeGridDef(GridInfoType *grid)
 {
-    printf("CartRank: %d Row: %d col: %d\n", 
-            grid->myRank, grid->myRow, grid->myCol);
+    for (int i = 0; i < grid->p; i++)
+    {
+        if (i == grid->myRank)
+            printf("CartRank: %d Row: %d col: %d\n",
+                   grid->myRank, grid->myRow, grid->myCol);
+
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+}
+
+Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
+{
+    // No need to check if matrix is null, since only the root process will have
+    // the full matrix. All other process have a sub matrix
+    checkNullPointer(localMatrix, "scatterData", "localMatrix");
+    checkNullPointer(grid, "scatterData", "grid");
+
+    if (grid->myRank == 0)
+        checkNullPointer(matrix, "scatterData", "matrix");
+
+    // Full matrix size. Attention: grid->q is the number of "divisions" per side
+    int sideSize = localMatrix->nRow * grid->q;
+    int size[2] = {sideSize, sideSize};
+    // Local matrix size
+    int subsize[2] = {localMatrix->nRow, localMatrix->nCol};
+    // Start of the array
+    int start[2] = {0, 0};
+
+    MPI_Datatype subArray, subMatrix;
+
+    /*  The subarray type constructor creates an MPI data type describing an 
+        n-dimensional subarray of an n-dimensional array. In out case means that
+        the submatrix may be situated anywhere within the full matrix
+        Very usefull to scatter matrix data
+    */
+    MPI_Type_create_subarray(2, size, subsize, start, MPI_ORDER_C,
+                             MPI_INT, &subArray);
+
+    /*
+        Since our data is in a continuous piece of memory, we obviously have
+        holes. The previous call calculates the extent (the piece of memory 
+        where the submatrix is) as everything between the first and last block, 
+        however, the holes contain other submatrix that we want to scatter. 
+        We then need to indicate a new upper bound that will take into 
+        consideration the holes. 
+    */
+    MPI_Type_create_resized(subArray, 0, localMatrix->nRow * sizeof(int), &subMatrix);
+    MPI_Type_commit(&subMatrix);
+
+    // How many submatrix we will send
+    int *sendcounts = newArray(grid->p, 1);
+
+    // The displacement i.e. where each submatrix start in the continuous piece
+    // of memory
+    int *displs = newArray(grid->p, 0);
+
+    if (grid->myRank == 0)
+    {
+        for (int i = 0, disp = 0; i < grid->q; i++)
+        {
+            for (int j = 0; j < grid->q; j++)
+            {
+                displs[i * grid->q + j] = disp;
+                disp++;
+            }
+
+            disp += (localMatrix->nRow - 1) * grid->q;
+        }
+    }
+
+    // We now scater the Matrix
+    MPI_Scatterv(matrix != NULL ? matrix->data : NULL, sendcounts, displs,
+                 subMatrix, localMatrix->data,
+                 localMatrix->fullSize, MPI_INT, 0, grid->comm);
+
+#if VERBOSE
+    if (matrix != NULL) {
+        printf("Full matrix\n");
+        printMatrix(matrix);
+    }
+
+    MPI_Barrier(grid->comm);
+
+    for (int i = 0; i < grid->p; i++)
+    {
+        if (i == grid->myRank)
+        {
+            printf("CartRank: %d\n", grid->myRank);
+            printMatrix(localMatrix);
+        }
+
+        MPI_Barrier(grid->comm);
+    }
+#endif
+
+    free(displs);
+    free(sendcounts);
+    MPI_Type_free(&subArray);
+
+    return localMatrix;
 }

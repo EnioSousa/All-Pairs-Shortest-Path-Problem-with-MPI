@@ -56,6 +56,7 @@ Matrix *newMatrix(int nRow, int nCol, int defaultValue)
     matrix->data = newArray(nRow * nCol, defaultValue);
     matrix->nRow = nRow;
     matrix->nCol = nCol;
+    matrix->fullSize = nRow * nCol;
 
     return matrix;
 }
@@ -92,7 +93,13 @@ int *setMatrixPos(Matrix *matrix, int row, int col, int value)
 }
 
 void printMatrix(Matrix *matrix)
-{
+{   
+    if (matrix == NULL || matrix->data == NULL)
+    {
+        printf("Matrix is NULL\n");
+        return;
+    }
+
     printf("Matrix %dx%d:\n", matrix->nRow, matrix->nCol);
 
     for (int i = 0; i < matrix->nRow; i++)
@@ -106,4 +113,22 @@ void printMatrix(Matrix *matrix)
     printf("\n");
 }
 
+void freeBiArray(int **array, int size)
+{
+    if (array != NULL)
+    {
+        for (int i = 0; i < size; i++)
+            free(array[i]);
+    }
 
+    free(array);
+}
+
+void freeMatrix(Matrix *matrix)
+{
+    if (matrix != NULL)
+    {
+        free(matrix->data);
+        free(matrix);
+    }
+}

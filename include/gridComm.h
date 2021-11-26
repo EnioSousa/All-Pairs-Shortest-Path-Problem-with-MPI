@@ -9,11 +9,11 @@
 #include "main.h"
 
 /*
-    p:          Total number of processes
-    comm:       Communicator for the entire grid
+    p:         Total number of processes
+    comm:      Communicator for the entire grid
     rowComm:   Communicator for my row
     colComm:   Communicator for my col
-    q:         Order of grid
+    q:         q == p * p i.e. q is the number of divisions per "side"
     myRow:     My row number
     myCol:     My col number
     myRank:    My rank in the grid communicator
@@ -41,7 +41,7 @@ typedef struct
 
     Returns: Pointer to the new GridInfoType object
 */
-GridInfoType* newGrid();
+GridInfoType *newGrid();
 
 /*
     Function: Free memory allocated for GridInfoType object
@@ -51,5 +51,19 @@ GridInfoType* newGrid();
     Return: void
 */
 void freeGrid(GridInfoType *grid);
+
+/*
+    Function: Divide the full matrix into subMatrix and scatter 
+    ---------------------------------------------------------------------------
+    Function is responsible dividing the full matrix in to n smaller sub matrix
+    and scatter to other processes in the grid
+
+    grid: grid communication
+    matrix: full matrix. Only the root process has this matrix
+    localMatrix: local matrix to each process.
+
+    Return: The corresponding subMatrix for a given process
+*/
+Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix);
 
 #endif
