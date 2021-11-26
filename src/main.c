@@ -1,8 +1,8 @@
 #include "main.h"
 
 /* 
-    Note:   To change the number of process you need to change in the 
-            makefile 
+    NOTE: You can change global definitions in main.h. Currently you can change
+    file to read and VERBOSE mode.
 */
 
 Matrix *getData();
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
     MPI_Bcast(&matrixSize, 1, MPI_INT, 0, grid->comm);
 
-    //Scatter the data
+    // Scatter the data. Each process has a localMatrix that is a submatrix
     int localMatrixSize = matrixSize / grid->q;
     Matrix *localMatrix = scatterData(grid, matrix, newMatrix(localMatrixSize, localMatrixSize, 0));
 

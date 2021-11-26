@@ -1,5 +1,17 @@
 #include "errorMsg.h"
 
+/*
+Local Declarations
+===============================================================================
+*/
+
+void errorMessagePointer(char *funcName, char *varName);
+void errorMessageAlloc(char *funcName, char *varName);
+
+/*
+Implementation
+===============================================================================
+*/
 void errorMessageAlloc(char *funcName, char *varName)
 {
     fprintf(stderr, "%s: Memory allocation failed. Var %s\n", funcName, varName);

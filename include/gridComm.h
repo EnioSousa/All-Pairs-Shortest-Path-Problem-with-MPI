@@ -55,12 +55,12 @@ void freeGrid(GridInfoType *grid);
 /*
     Function: Divide the full matrix into subMatrix and scatter 
     ---------------------------------------------------------------------------
-    Function is responsible dividing the full matrix in to n smaller sub matrix
-    and scatter to other processes in the grid
+    Function is responsible for dividing the full matrix in to n smaller sub 
+    matrix and scatter to other processes in the grid
 
     grid: grid communication
     matrix: full matrix. Only the root process has this matrix
-    localMatrix: local matrix to each process.
+    localMatrix: local matrix to each process. You need to create them
 
     Return: The corresponding subMatrix for a given process
 */

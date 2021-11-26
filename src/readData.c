@@ -3,9 +3,9 @@
 #define DATALOC "data/"
 
 /*
-    ========================= Local declaration =========================
+Local Declarations
+===============================================================================
 */
-
 /* 
     Function: Read matrix data from a file
     --------------------------------------
@@ -20,7 +20,8 @@ Matrix *readMatrixData(Matrix *matrix, FILE *inFile);
 
 
 /*
-    ========================= Implementation =========================
+Implementation
+===============================================================================
 */
 FILE *openFile(char *fileName, char *permissions)
 {
