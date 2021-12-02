@@ -6,7 +6,10 @@
 #include "errorMsg.h"
 #include "basicFunc.h"
 #include "math.h"
-#include "main.h"
+//#include "main.h"
+
+// If true then print the state of the program through its execution
+#define VERBOSE 0 
 
 /*
     p:         Total number of processes

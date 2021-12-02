@@ -124,6 +124,14 @@ void freeBiArray(int **array, int size)
     free(array);
 }
 
+void freeArray(int *array)
+{
+	if(array != NULL)
+	{
+		free(array);
+	}
+}
+
 void freeMatrix(Matrix *matrix)
 {
     if (matrix != NULL)
@@ -132,3 +140,24 @@ void freeMatrix(Matrix *matrix)
         free(matrix);
     }
 }
+
+void copyMatrix(Matrix *matrix_A, Matrix *matrix_B){
+	
+	if (matrix_A == NULL || matrix_A->data == NULL || matrix_B == NULL || matrix_B->data == NULL)
+    {
+        printf("Matrix is NULL\n");
+        return;
+    }
+	
+	matrix_B->nCol = matrix_A->nCol; 
+	matrix_B->nRow = matrix_A->nRow;
+	matrix_B->fullSize = matrix_A->fullSize;
+	
+	int size = matrix_A->nRow;
+	for (int i = 0; i < size; i++)
+        for (int j = 0; j < size; j++)
+			setMatrixPos(matrix_B, i, j, *getMatrixPos(matrix_A, i, j));
+    
+    
+}
+

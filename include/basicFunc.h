@@ -88,6 +88,9 @@ void printBiArray(int **biArray, int n, int m);
 void printArray(int *array, int n);
 
 void freeBiArray(int **array, int size);
+void freeArray(int *array);
 void freeMatrix(Matrix *matrix);
+
+void copyMatrix(Matrix *matrix_A, Matrix *matrix_B);
 
 #endif
