@@ -6,16 +6,18 @@
 */
 
 Matrix *getData(char *fileName);
+char *getOutputName();
 
 int main(int argc, char **argv)
 {
     Matrix *matrix = NULL;
 
     int globalRank, nProc, matrixSize;
-    int *res;
+    
+    double timeStart, timeFinish;
 
     /* Initialize global communicator and read the matrix data */
-    MPI_Init(&argc, &argv);
+    MPI_Init(&argc, &argv); 
     MPI_Comm_size(MPI_COMM_WORLD, &nProc);
     MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
 
@@ -24,6 +26,14 @@ int main(int argc, char **argv)
         matrix = getData(FILENAME);
         matrixSize = matrix->nCol;
 
+		float Q = sqrt(nProc);
+		float fracPart = Q - (int)Q;
+
+		if( (fracPart != 0) || (matrixSize % (int)Q != 0) ){
+			printf("ERROR: Invalid configuration!\n");
+			return -1;
+		}
+		
         int *pos;
         for (int i = 0; i < matrixSize; i++)
         {
@@ -34,10 +44,7 @@ int main(int argc, char **argv)
                     setMatrixPos(matrix, i, x, INT_MAX); //Change value to infinite
             }
         }
-
-        res = (int *)malloc(sizeof(int) * matrixSize * matrixSize);
-        checkAlloc(res, "main", "res");
-    }
+	}
 
 #if VERBOSE
     printf("World %d: starting\n", globalRank);
@@ -48,7 +55,9 @@ int main(int argc, char **argv)
     /* Construct grid communicator */
     GridInfoType *grid = newGrid();
     // Wait
-    MPI_Barrier(MPI_COMM_WORLD);
+    
+    MPI_Barrier(MPI_COMM_WORLD); /* Start timer */
+	timeStart = MPI_Wtime();
 
     MPI_Bcast(&matrixSize, 1, MPI_INT, 0, grid->comm);
 
@@ -67,25 +76,40 @@ int main(int argc, char **argv)
         copyMatrix(local_C, local_B);
     }
 
-    Matrix *m = gatherData(local_C, grid);
+    Matrix *result = gatherData(local_C, grid);
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	timeFinish = MPI_Wtime();    /* Finish timer */
 
     if (grid->myRank == 0)
     {
-        Matrix *mOutput = getData("output300");
 
-        if (!equalsMatrix(m, mOutput))
+# if VERBOSE
+		char *outputFile = getOutputName();
+        
+        Matrix *mOutput = getData(outputFile);
+
+        if (!equalsMatrix(result, mOutput))
         {   
             printf("NOT EQUALS\n");
-            printMatrix(m);
+            
+            printf("Result:\n");
+            printMatrix(result);
+            printf("Output:\n");
             printMatrix(mOutput);
-        } 
-        else {
+        }else{
             printf("EQUALS\n");
         }
-        freeMatrix(m);
+        
+        free(outputFile);
         freeMatrix(mOutput);
-    }
+#endif    
 
+		printMatrix(result);
+		printf("\nExecution time: %f\n", timeFinish - timeStart);
+        freeMatrix(result);
+    }
+	
     freeGrid(grid);
     freeMatrix(matrix);
     freeMatrix(local_A);
@@ -111,4 +135,21 @@ Matrix *getData(char *fileName)
 #endif
 
     return matrix;
+}
+
+
+char *getOutputName(){
+	
+	char *inputName = FILENAME;
+	const char *number = inputName + 5; //Word "input" have 5 letters
+
+	int sizeOfOutput = strlen("output") + strlen(number);
+	char *outputName = (char *)malloc(sizeof(char) * (sizeOfOutput+1));
+
+	checkAlloc(outputName, "getOutputName", "outputName");
+
+	strcpy(outputName, "output");
+	strcat(outputName, number);
+		
+	return outputName;
 }
