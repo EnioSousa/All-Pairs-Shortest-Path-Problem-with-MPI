@@ -8,9 +8,6 @@
 #include "math.h"
 //#include "main.h"
 
-// If true then print the state of the program through its execution
-#define VERBOSE 0 
-
 /*
     p:         Total number of processes
     comm:      Communicator for the entire grid
@@ -69,4 +66,8 @@ void freeGrid(GridInfoType *grid);
 */
 Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix);
 
+Matrix* gatherData(Matrix* subMatrix, GridInfoType *grid);
+
+
+#include "main.h"
 #endif

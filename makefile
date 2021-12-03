@@ -17,7 +17,7 @@ LFLAGS := -lm
 
 # How to run
 RP := mpirun
-RFLAGS := -np 4
+RFLAGS := -np 9
 
 SRC := $(wildcard $(SRC_DIR)/*.c)
 DEP := $(wildcard $(INCLUDE_DIR)/*.h)
@@ -29,7 +29,7 @@ OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 all: compile run
 
 run:
-	$(RP) $(RFLAGS) ./$(EXE) --oversubscribe 
+	$(RP) $(RFLAGS) --oversubscribe ./$(EXE) 
 
 compile: $(EXE)
 

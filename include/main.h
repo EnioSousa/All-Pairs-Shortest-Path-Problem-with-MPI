@@ -12,6 +12,6 @@
 #define VERBOSE 1 
 
 // Can change the file to read here
-#define FILENAME "input4v2"
+#define FILENAME "input300"
 
 #endif

@@ -5,15 +5,15 @@
     file to read and VERBOSE mode.
 */
 
-Matrix *getData();
+Matrix *getData(char *fileName);
 
 int main(int argc, char **argv)
 {
     Matrix *matrix = NULL;
 
     int globalRank, nProc, matrixSize;
-	int *res;
-	
+    int *res;
+
     /* Initialize global communicator and read the matrix data */
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nProc);
@@ -21,23 +21,26 @@ int main(int argc, char **argv)
 
     if (globalRank == 0)
     {
-        matrix = getData();
-		matrixSize = matrix->nCol;
-		
-		int *pos;
-		for(int i = 0; i < matrixSize; i++){
-			for(int x = 0; x < matrixSize; x++){
-				pos = getMatrixPos(matrix, i, x);
-				if((i != x) && (*pos == 0)) setMatrixPos(matrix, i, x, INT_MAX); //Change value to infinite
-			}
-		}
-		
-		res = (int *)malloc(sizeof(int) * matrixSize*matrixSize);
-		checkAlloc(res, "main", "res");
+        matrix = getData(FILENAME);
+        matrixSize = matrix->nCol;
+
+        int *pos;
+        for (int i = 0; i < matrixSize; i++)
+        {
+            for (int x = 0; x < matrixSize; x++)
+            {
+                pos = getMatrixPos(matrix, i, x);
+                if ((i != x) && (*pos == 0))
+                    setMatrixPos(matrix, i, x, INT_MAX); //Change value to infinite
+            }
+        }
+
+        res = (int *)malloc(sizeof(int) * matrixSize * matrixSize);
+        checkAlloc(res, "main", "res");
     }
 
 #if VERBOSE
-    //printf("World %d: starting\n", globalRank);
+    printf("World %d: starting\n", globalRank);
 #endif
     // Wait
     MPI_Barrier(MPI_COMM_WORLD);
@@ -52,37 +55,55 @@ int main(int argc, char **argv)
     // Scatter the data. Each process has a localMatrix that is a submatrix
     int localMatrixSize = matrixSize / grid->q;
     Matrix *local_A = scatterData(grid, matrix, newMatrix(localMatrixSize, localMatrixSize, 0));
-	Matrix *local_B = newMatrix(localMatrixSize, localMatrixSize, 0);
-	copyMatrix(local_A, local_B);
+    Matrix *local_B = newMatrix(localMatrixSize, localMatrixSize, 0);
+    copyMatrix(local_A, local_B);
 
-	Matrix *local_C =  newMatrix(localMatrixSize, localMatrixSize, INT_MAX);
+    Matrix *local_C = newMatrix(localMatrixSize, localMatrixSize, INT_MAX);
 
-	for(int x = 1; x < matrixSize-1; x++) //Fox algorithm
-	{ 
-		Fox(matrixSize, grid, local_A, local_B, local_C);
-		copyMatrix(local_C, local_A);
-		copyMatrix(local_C, local_B);
-	}
+    for (int x = 1; x < matrixSize - 1; x++) //Fox algorithm
+    {
+        Fox(matrixSize, grid, local_A, local_B, local_C);
+        copyMatrix(local_C, local_A);
+        copyMatrix(local_C, local_B);
+    }
 
-	MPI_Gather(local_C->data, localMatrixSize*localMatrixSize, MPI_INT, res, localMatrixSize*localMatrixSize, MPI_INT, 0, MPI_COMM_WORLD);
+    Matrix *m = gatherData(local_C, grid);
 
-    if(grid->myRank == 0){
-		printResult(res, nProc, matrixSize, localMatrixSize);
-		freeArray(res);
-	}
-	
+    if (grid->myRank == 0)
+    {
+        Matrix *mOutput = getData("output300");
+
+        if (!equalsMatrix(m, mOutput))
+        {   
+            printf("NOT EQUALS\n");
+            printMatrix(m);
+            printMatrix(mOutput);
+        } 
+        else {
+            printf("EQUALS\n");
+        }
+        freeMatrix(m);
+        freeMatrix(mOutput);
+    }
+
     freeGrid(grid);
     freeMatrix(matrix);
-	freeMatrix(local_A);
-	freeMatrix(local_B);
-	freeMatrix(local_C);
+    freeMatrix(local_A);
+    freeMatrix(local_B);
+    freeMatrix(local_C);
 
     MPI_Finalize();
 }
 
-Matrix *getData()
+Matrix *getData(char *fileName)
 {
-    Matrix *matrix = readData(FILENAME);
+    Matrix *matrix;
+
+    if (fileName == NULL)
+        matrix = readData(FILENAME);
+
+    else
+        matrix = readData(fileName);
 
 #if VERBOSE
     printf("Matrix Read:\n");

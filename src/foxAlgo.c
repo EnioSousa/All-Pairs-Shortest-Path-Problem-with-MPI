@@ -6,7 +6,6 @@ Local Declarations
 */
 
 void localMatrixMultiply(Matrix* A, Matrix* B, Matrix* C);
-void resetMatrix(Matrix* C);
 
 /*
 Implementation
@@ -29,7 +28,7 @@ void Fox(int n, GridInfoType* grid,
 	MPI_Status status;
 	
 	n_bar = n/grid->q;
-	resetMatrix(local_C);
+	resetMatrix(local_C, INT_MAX);
 	
 	/* Calculate addresses for circular shift of B */
 	source = (grid->myRow + 1) % grid->q;
@@ -63,19 +62,6 @@ void Fox(int n, GridInfoType* grid,
 	freeMatrix(temp_A);
 }
 
-void resetMatrix(Matrix* C){
-	
-	int size = C->nRow;
-	
-	for(int i = 0; i < size; i++)
-	{
-		for(int x = 0; x < size; x++)
-		{
-			setMatrixPos(C, i, x, INT_MAX);
-		}
-	}
-}
-
 void localMatrixMultiply(Matrix* A, Matrix* B, Matrix* C){
 	
 	int size = A->nRow;
@@ -103,44 +89,6 @@ void localMatrixMultiply(Matrix* A, Matrix* B, Matrix* C){
 			}
 		}
 	}
-}
-
-
-void printResult(int *res, int nProc, int matrixSize, int localMatrixSize){
-	
-	int* final = (int *)malloc(sizeof(int) * matrixSize*matrixSize);
-	
-	checkAlloc(final, "printResult", "final");
-	
-	int aux = 0;
-	
-	for(int procRow = 0; procRow < nProc/2; procRow++) //percorrer as linha de processos 
-	{ 
-		for(int matrixRow = 0; matrixRow < localMatrixSize*localMatrixSize; matrixRow+=localMatrixSize) //percorrer linha vertical
-		{ 
-			for(int procCol = 0; procCol < nProc/2 ; procCol++) //percorrer os processos na horizontal
-			{	
-				for(int matrixCol = 0; matrixCol < localMatrixSize; matrixCol++) //Percorrer linha horizontal
-				{
-					final[aux] = res[procRow*localMatrixSize*localMatrixSize*nProc/2 + matrixRow + procCol*localMatrixSize*localMatrixSize + matrixCol]; 
-					aux++;
-				}
-			}
-		}
-	}
-	
-	
-	for(int i = 0; i < matrixSize; i++)
-	{
-		for(int x = 0; x < matrixSize; x++)
-		{
-			if(final[i*matrixSize+x] == INT_MAX) printf("%5d ", 0);
-			else printf("%5d ", final[i*matrixSize+x]);
-		}
-		printf("\n");
-	}
-	
-	freeArray(final);
 }
 
 

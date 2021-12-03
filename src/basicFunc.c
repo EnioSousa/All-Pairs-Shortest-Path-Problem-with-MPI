@@ -92,6 +92,56 @@ int *setMatrixPos(Matrix *matrix, int row, int col, int value)
     }
 }
 
+Matrix* resetMatrix(Matrix* C, int value){
+	
+	int size = C->nRow;
+	
+	for(int i = 0; i < size; i++)
+	{
+		for(int x = 0; x < size; x++)
+		{
+			setMatrixPos(C, i, x, value);
+		}
+	}
+
+    return C;
+}
+
+Matrix* replaceMatrixValue(Matrix *matrix, int toReplace, int newValue) {
+
+	int size = matrix->nRow;
+	
+	for(int i = 0; i < size; i++)
+	{
+		for(int x = 0; x < size; x++)
+		{
+            if ( *getMatrixPos(matrix, i, x) == toReplace ) {
+                setMatrixPos(matrix, i, x, newValue);
+            }
+        }
+    }
+
+    return matrix;
+}
+
+int equalsMatrix(Matrix *matrix0, Matrix* matrix1) {
+    checkNullPointer(matrix0, "equalsMatrix", "matrix0");
+    checkNullPointer(matrix1, "equalsMatrix", "matrix1");
+
+    if ( matrix0->nCol != matrix1->nCol || matrix0->nRow != matrix1->nRow) {
+        return 0;
+    }
+
+    for( int i=0; i<matrix0->nRow; i++ ) {
+        for( int j=0; j<matrix0->nCol; j++) { 
+            if ( *getMatrixPos(matrix0, i, j) != *getMatrixPos(matrix1, i, j) ) {
+                return 0;
+            }
+        }
+    }
+}
+
+
 void printMatrix(Matrix *matrix)
 {   
     if (matrix == NULL || matrix->data == NULL)
