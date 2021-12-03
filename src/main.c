@@ -83,10 +83,6 @@ int main(int argc, char **argv)
 
     if (grid->myRank == 0)
     {
-<<<<<<< HEAD
-=======
-        Matrix *mOutput = getData("output6");
->>>>>>> f57b668f48458a44b74fb697a5baa68f779cf5ac
 
 # if VERBOSE
 		char *outputFile = getOutputName();
