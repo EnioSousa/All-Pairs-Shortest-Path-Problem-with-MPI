@@ -170,6 +170,7 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
                  localMatrix->fullSize, MPI_INT, 0, grid->comm);
 
 #if VERBOSE
+/*  
     if (matrix != NULL)
     {
         printf("Full matrix\n");
@@ -187,7 +188,8 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
         }
 
         MPI_Barrier(grid->comm);
-    }
+    } */
+
 #endif
 
     free(displs);

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
     if (grid->myRank == 0)
     {
-        Matrix *mOutput = getData("output300");
+        Matrix *mOutput = getData("output6");
 
         if (!equalsMatrix(m, mOutput))
         {   
