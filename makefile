@@ -24,10 +24,21 @@ SRC := $(wildcard $(SRC_DIR)/*.c)
 DEP := $(wildcard $(INCLUDE_DIR)/*.h)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-.PHONY: all compile clean run
+.PHONY: all compile clean run runTestHome runTestLab
 
  # Compile and run
-all: compile run
+all: compile 
+
+runTestLab:
+	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input 4
+
+runTestHome:
+	$(RP) -np 4  --oversubscribe ./$(EXE) input4
+	$(RP) -np 4  --oversubscribe ./$(EXE) input6
+	$(RP) -np 4  --oversubscribe ./$(EXE) input300
+	$(RP) -np 9  --oversubscribe ./$(EXE) input6
+	$(RP) -np 9  --oversubscribe ./$(EXE) input300
+	$(RP) -np 16 --oversubscribe ./$(EXE) input300
 
 run:
 	$(RP) $(RFLAGS) --oversubscribe ./$(EXE) $(FILENAME)

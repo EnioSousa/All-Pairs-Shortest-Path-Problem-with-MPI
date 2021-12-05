@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 
     int q = (int)sqrt(nProc);
 
-    if (q * q < nProc)
+    if (q * q < nProc) 
     {
         if (globalRank == 0)
             printf("ERROR: Invalid configuration!\n");
@@ -71,11 +71,6 @@ int main(int argc, char **argv)
     // Scatter the data. Each process has a localMatrix that is a submatrix
     int localMatrixSize = matrixSize / grid->q;
     Matrix *local_A = scatterData(grid, matrix, newMatrix(localMatrixSize, localMatrixSize, 0));
-    /**
-     * ! Esta a falhar nesta chamada. O processo zero não sai daqui se 
-     * ! tentarmos correr com 16 processos. Ou seja nao conseguimos acabar 
-     * ! a execução. Algum erro com o malloc 
-     */
     Matrix *local_B = newMatrix(localMatrixSize, localMatrixSize, 0);
     copyMatrix(local_A, local_B);
 
