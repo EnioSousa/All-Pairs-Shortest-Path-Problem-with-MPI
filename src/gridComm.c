@@ -111,6 +111,7 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
     checkNullPointer(localMatrix, "scatterData", "localMatrix");
     checkNullPointer(grid, "scatterData", "grid");
 
+	
     if (grid->myRank == 0)
         checkNullPointer(matrix, "scatterData", "matrix");
 
@@ -124,7 +125,11 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
 
     sgInfo = (SGInfo *)malloc(sizeof(SGInfo));
     checkAlloc(sgInfo, "scatterData", "sgInfo");
-
+    
+		
+	//How many submatrix we will send
+    sgInfo->sendRecCounts = newArray(grid->p, 1);
+	
     MPI_Datatype subArray;
 
     /*  The subarray type constructor creates an MPI data type describing an 
@@ -132,6 +137,7 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
         the submatrix may be situated anywhere within the full matrix
         Very usefull to scatter matrix data
     */
+    
     MPI_Type_create_subarray(2, size, subsize, start, MPI_ORDER_C,
                              MPI_INT, &subArray);
 
@@ -143,17 +149,16 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
         We then need to indicate a new upper bound that will take into 
         consideration the holes. 
     */
+    
     MPI_Type_create_resized(subArray, 0, localMatrix->nRow * sizeof(int),
                             &(sgInfo->subMatrix));
+				
     MPI_Type_commit(&(sgInfo->subMatrix));
-
-    // How many submatrix we will send
-    sgInfo->sendRecCounts = newArray(grid->p, 1);
-
-    // The displacement i.e. where each submatrix start in the continuous piece
+	
+	// The displacement i.e. where each submatrix start in the continuous piece
     // of memory
     sgInfo->displs = newArray(grid->q, 0);
-
+	
     if (grid->myRank == 0)
     {
         for (int i = 0, disp = 0; i < grid->q; i++)
@@ -167,7 +172,14 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
             disp += (localMatrix->nRow - 1) * grid->q;
         }
     }
-
+	
+	/*
+	if(grid->myRank == 0){
+			printf("sgInfo->sendRecCounts: %d\nsgInfo->displs: %d\nlocalMatrix->fullSize: %d\nGrid->p: %d \n", *sgInfo->sendRecCounts, *sgInfo->displs, localMatrix->fullSize, grid->p);
+	}
+	sleep(1);
+	*/
+	
     // We now scater the Matrix
     MPI_Scatterv(matrix != NULL ? matrix->data : NULL, sgInfo->sendRecCounts,
                  sgInfo->displs,
