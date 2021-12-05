@@ -12,10 +12,9 @@ Implementation
 ===============================================================================
 */
 
-void fox(GridInfoType *grid, Matrix *localA, Matrix *localB, Matrix *localC)
+void fox(GridInfoType *grid, Matrix *localA, Matrix *localB, Matrix *localC,
+		 Matrix *temp)
 {
-	Matrix *temp = newMatrix(localA->nRow, localA->nCol, 0);
-
 	/**
 	 * @brief Processor directly below
 	 */
@@ -40,9 +39,6 @@ void fox(GridInfoType *grid, Matrix *localA, Matrix *localB, Matrix *localC)
 		 */
 		int broadCastRoot = (grid->myRow + step) % grid->q;
 
-		MPI_Barrier(MPI_COMM_WORLD);
-
-		MPI_Barrier(MPI_COMM_WORLD);
 		// The current process will broadcast
 		if (broadCastRoot == grid->myCol)
 		{
@@ -58,13 +54,10 @@ void fox(GridInfoType *grid, Matrix *localA, Matrix *localB, Matrix *localC)
 			localMatrixMultiply(temp, localB, localC);
 		}
 
-		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Sendrecv_replace(localB->data, localB->fullSize, MPI_INT,
 							 columnDest, tag, columnSource, tag,
 							 grid->colComm, MPI_STATUS_IGNORE);
 	}
-
-	freeMatrix(temp);
 }
 
 void localMatrixMultiply(Matrix *A, Matrix *B, Matrix *C)

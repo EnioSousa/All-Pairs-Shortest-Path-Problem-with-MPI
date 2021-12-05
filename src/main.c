@@ -47,6 +47,7 @@ int main(int argc, char **argv)
             for (int x = 0; x < matrixSize; x++)
             {
                 pos = getMatrixPos(matrix, i, x);
+
                 if ((i != x) && (*pos == 0))
                     setMatrixPos(matrix, i, x, INT_MAX); //Change value to infinite
             }
@@ -75,15 +76,19 @@ int main(int argc, char **argv)
     copyMatrix(local_A, local_B);
 
     Matrix *local_C = newMatrix(localMatrixSize, localMatrixSize, INT_MAX);
+    
+    Matrix *temp = newMatrixNoDefault(local_A->nRow, local_A->nCol);
 
-    for (int x = 0; x < sqrt(matrixSize); x++) //Fox algorithm
+    double maxIterations = log2((double)matrixSize);
+
+    for (int x = 0; x < maxIterations; x++) //Fox algorithm
     {
-        fox(grid, local_A, local_B, local_C);
+        fox(grid, local_A, local_B, local_C, temp);
         copyMatrix(local_C, local_A);
         copyMatrix(local_C, local_B);
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    free(temp);
 
     Matrix *result = gatherData(local_C, grid);
 

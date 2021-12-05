@@ -51,12 +51,7 @@ void printArray(int *array, int n)
 #include "mpi.h"
 
 Matrix *newMatrix(int nRow, int nCol, int defaultValue)
-{    
-    /**
-     * ! Esta a falhar neste malloc. Por alguma razão com se corrermos
-     * ! o mips com 16 processadores o processador com rank 0 falha no malloc
-     * ? Sera possivel que ficamos sem memoria? MAS FUNCIONA COM 25 
-     */
+{  
     Matrix *matrix = (Matrix *)malloc(sizeof(Matrix));
     checkAlloc(matrix, "newMatrix", "matrix");
 
@@ -64,6 +59,17 @@ Matrix *newMatrix(int nRow, int nCol, int defaultValue)
     matrix->nRow = nRow;
     matrix->nCol = nCol;
     matrix->fullSize = nRow * nCol;
+
+    return matrix;
+}
+
+Matrix *newMatrixNoDefault(int nRow, int nCol) {
+    Matrix *matrix = (Matrix *)malloc(sizeof(Matrix));
+
+    matrix->nRow = nRow;
+    matrix->nCol = nCol;
+    matrix->fullSize = nRow * nCol;
+    matrix->data = (int *)malloc(matrix->fullSize * sizeof(int));
 
     return matrix;
 }

@@ -31,7 +31,8 @@ typedef struct Matrix
 } Matrix;
 
 /**
- * @brief Allocates space for a Matrix object and returns the pointer
+ * @brief Allocates space for a Matrix object with a default value
+ * and returns the pointer
  * 
  * @param nRow Number of rows in the matrix.
  * @param nCol Number of columns in the matrix.
@@ -39,6 +40,15 @@ typedef struct Matrix
  * @return Matrix structure, initialized with "defaultValue"
  */
 Matrix *newMatrix(int nRow, int nCol, int defaultValue);
+
+/**
+ * @brief Allocates space for a matrix object and returns the pointer
+ * 
+ * @param nRow Number of rows
+ * @param nCol Number of cols
+ * @return Matrix structure
+ */
+Matrix *newMatrixNoDefault(int nRow, int nCol);
 
 /**
  * @brief Return the pointer that holds (row,col) possition. If possition dosen't exist return NULL

@@ -17,7 +17,7 @@ LFLAGS := -lm
 
 # How to run
 RP := mpirun
-RFLAGS := -np 16
+RFLAGS := -np 9
 FILENAME := input300
 
 SRC := $(wildcard $(SRC_DIR)/*.c)
@@ -27,7 +27,7 @@ OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 .PHONY: all compile clean run runTestHome runTestLab
 
  # Compile and run
-all: compile 
+all: compile run
 
 runTestLab:
 	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input4
@@ -55,7 +55,9 @@ runTestHome:
 	$(RP) -np 4  --oversubscribe ./$(EXE) input300
 	$(RP) -np 9  --oversubscribe ./$(EXE) input6
 	$(RP) -np 9  --oversubscribe ./$(EXE) input300
+	$(RP) -np 9  --oversubscribe ./$(EXE) input600
 	$(RP) -np 16 --oversubscribe ./$(EXE) input300
+	$(RP) -np 16  --oversubscribe ./$(EXE) input600
 
 run:
 	$(RP) $(RFLAGS) --oversubscribe ./$(EXE) $(FILENAME)

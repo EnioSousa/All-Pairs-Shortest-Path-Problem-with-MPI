@@ -17,6 +17,7 @@
  * @param localB 
  * @param localC 
  */
-void fox(GridInfoType* grid, Matrix* localA, Matrix *localB, Matrix *localC);
+void fox(GridInfoType *grid, Matrix *localA, Matrix *localB, Matrix *localC,
+         Matrix *temp);
 
 #endif
