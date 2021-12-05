@@ -30,7 +30,12 @@ OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 all: compile 
 
 runTestLab:
-	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input 4
+	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input4
+	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input6
+	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input300
+	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input6
+	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input300
+	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input300
 
 runTestHome:
 	$(RP) -np 4  --oversubscribe ./$(EXE) input4
