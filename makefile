@@ -27,7 +27,7 @@ OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 .PHONY: all compile clean run runTestHome runTestLab
 
  # Compile and run
-all: compile run
+all: compile
 
 runTestLab:
 	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input4
