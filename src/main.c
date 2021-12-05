@@ -60,12 +60,11 @@ int main(int argc, char **argv)
     // Wait
     MPI_Barrier(MPI_COMM_WORLD);
 
+    timeStart = MPI_Wtime();
+
     /* Construct grid communicator */
     GridInfoType *grid = newGrid();
     // Wait
-
-    MPI_Barrier(MPI_COMM_WORLD); /* Start timer */
-    timeStart = MPI_Wtime();
 
     MPI_Bcast(&matrixSize, 1, MPI_INT, 0, grid->comm);
 
@@ -73,14 +72,13 @@ int main(int argc, char **argv)
     int localMatrixSize = matrixSize / grid->q;
     Matrix *local_A = scatterData(grid, matrix, newMatrix(localMatrixSize, localMatrixSize, 0));
     Matrix *local_B = newMatrix(localMatrixSize, localMatrixSize, 0);
-    copyMatrix(local_A, local_B);
-
     Matrix *local_C = newMatrix(localMatrixSize, localMatrixSize, INT_MAX);
-    
     Matrix *temp = newMatrixNoDefault(local_A->nRow, local_A->nCol);
 
-    double maxIterations = log2((double)matrixSize);
+    copyMatrix(local_A, local_B);
 
+    double maxIterations = log2((double)matrixSize - 1);
+    
     for (int x = 0; x < maxIterations; x++) //Fox algorithm
     {
         fox(grid, local_A, local_B, local_C, temp);
@@ -92,7 +90,6 @@ int main(int argc, char **argv)
 
     Matrix *result = gatherData(local_C, grid);
 
-    MPI_Barrier(MPI_COMM_WORLD);
     timeFinish = MPI_Wtime(); /* Finish timer */
 
     if (grid->myRank == 0)

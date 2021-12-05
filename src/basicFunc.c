@@ -55,10 +55,10 @@ Matrix *newMatrix(int nRow, int nCol, int defaultValue)
     Matrix *matrix = (Matrix *)malloc(sizeof(Matrix));
     checkAlloc(matrix, "newMatrix", "matrix");
 
-    matrix->data = newArray(nRow * nCol, defaultValue);
     matrix->nRow = nRow;
     matrix->nCol = nCol;
     matrix->fullSize = nRow * nCol;
+    matrix->data = newArray(matrix->fullSize, defaultValue);
 
     return matrix;
 }
