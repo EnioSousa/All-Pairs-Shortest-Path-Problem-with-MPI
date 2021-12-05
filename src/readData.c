@@ -39,7 +39,7 @@ FILE *openFile(char *fileName, char *permissions)
     return inFile;
 }
 
-FILE *closeFile(FILE *fileName)
+void closeFile(FILE *fileName)
 {
     if (fileName != NULL)
         fclose(fileName);

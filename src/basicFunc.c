@@ -48,9 +48,16 @@ void printArray(int *array, int n)
     printf("\n");
 }
 
+#include "mpi.h"
+
 Matrix *newMatrix(int nRow, int nCol, int defaultValue)
-{
-    Matrix *matrix = (Matrix *)malloc(sizeof(matrix));
+{    
+    /**
+     * ! Esta a falhar neste malloc. Por alguma razão com se corrermos
+     * ! o mips com 16 processadores o processador com rank 0 falha no malloc
+     * ? Sera possivel que ficamos sem memoria? MAS FUNCIONA COM 25 
+     */
+    Matrix *matrix = (Matrix *)malloc(sizeof(Matrix));
     checkAlloc(matrix, "newMatrix", "matrix");
 
     matrix->data = newArray(nRow * nCol, defaultValue);
@@ -67,7 +74,7 @@ int *getMatrixPos(Matrix *matrix, int row, int col)
 
     if (row >= matrix->nRow || col >= matrix->nCol)
     {
-        fprintf(stderr, "getMatrixPos: Tried to access invalid position (%d, %d)",
+        fprintf(stderr, "getMatrixPos: Tried to access invalid position (%d, %d)\n",
                 row, col);
         return NULL;
     }
@@ -92,8 +99,55 @@ int *setMatrixPos(Matrix *matrix, int row, int col, int value)
     }
 }
 
+Matrix *resetMatrix(Matrix *C, int value)
+{
+
+    int size = C->nRow;
+
+    for (int i = 0; i < size; i++)
+    {
+        for (int x = 0; x < size; x++)
+        {
+            setMatrixPos(C, i, x, value);
+        }
+    }
+
+    return C;
+}
+
+Matrix *replaceMatrixValue(Matrix *matrix, int toReplace, int newValue)
+{
+    int size = matrix->nRow;
+
+    for (int i = 0; i < size; i++)
+    {
+        for (int x = 0; x < size; x++)
+        {   
+            int *pos = getMatrixPos(matrix, i, x);
+
+            if ( *pos == toReplace) 
+                *pos = newValue;
+        }
+    }
+
+    return matrix;
+}
+
+int equalsMatrix(Matrix *matrix0, Matrix *matrix1)
+{
+    if (matrix0->nCol != matrix1->nCol || matrix0->nRow != matrix1->nRow)
+    {
+        return 0;
+    }
+
+    return memcmp(matrix0->data, matrix1->data,
+                  matrix0->fullSize * sizeof(int)) == 0
+               ? 1
+               : 0;
+}
+
 void printMatrix(Matrix *matrix)
-{   
+{
     if (matrix == NULL || matrix->data == NULL)
     {
         printf("Matrix is NULL\n");
@@ -105,7 +159,11 @@ void printMatrix(Matrix *matrix)
     for (int i = 0; i < matrix->nRow; i++)
     {
         for (int j = 0; j < matrix->nCol; j++)
-            printf("%5d ", *getMatrixPos(matrix, i, j));
+        {
+            int temp = *getMatrixPos(matrix, i, j);
+
+            temp == INT_MAX ? printf("%5s ", "inf") : printf("%5d ", temp);
+        }
 
         printf("\n");
     }
@@ -124,6 +182,14 @@ void freeBiArray(int **array, int size)
     free(array);
 }
 
+void freeArray(int *array)
+{
+    if (array != NULL)
+    {
+        free(array);
+    }
+}
+
 void freeMatrix(Matrix *matrix)
 {
     if (matrix != NULL)
@@ -131,4 +197,15 @@ void freeMatrix(Matrix *matrix)
         free(matrix->data);
         free(matrix);
     }
+}
+
+void copyMatrix(Matrix *matrix_A, Matrix *matrix_B)
+{
+    checkNullPointer(matrix_A, "copyMatrix", "matrix_a");
+    checkNullPointer(matrix_B, "copyMatrix", "matrix_B");
+
+    if (matrix_A->fullSize != matrix_B->fullSize)
+        return;
+
+    memcpy(matrix_B->data, matrix_A->data, matrix_B->fullSize * sizeof(int));
 }

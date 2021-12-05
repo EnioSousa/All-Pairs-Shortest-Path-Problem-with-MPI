@@ -102,6 +102,8 @@ void seeGridDef(GridInfoType *grid)
     }
 }
 
+SGInfo *sgInfo;
+
 Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
 {
     // No need to check if matrix is null, since only the root process will have
@@ -120,7 +122,10 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
     // Start of the array
     int start[2] = {0, 0};
 
-    MPI_Datatype subArray, subMatrix;
+    sgInfo = (SGInfo *)malloc(sizeof(SGInfo));
+    checkAlloc(sgInfo, "scatterData", "sgInfo");
+
+    MPI_Datatype subArray;
 
     /*  The subarray type constructor creates an MPI data type describing an 
         n-dimensional subarray of an n-dimensional array. In out case means that
@@ -138,15 +143,17 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
         We then need to indicate a new upper bound that will take into 
         consideration the holes. 
     */
-    MPI_Type_create_resized(subArray, 0, localMatrix->nRow * sizeof(int), &subMatrix);
-    MPI_Type_commit(&subMatrix);
+    MPI_Type_create_resized(subArray, 0, localMatrix->nRow * sizeof(int),
+                            &(sgInfo->subMatrix));
 
-    // How many submatrix we will send
-    int *sendcounts = newArray(grid->p, 1);
+    MPI_Type_commit(&(sgInfo->subMatrix));
+
+    //How many submatrix we will send
+    sgInfo->sendRecCounts = newArray(grid->p, 1);
 
     // The displacement i.e. where each submatrix start in the continuous piece
     // of memory
-    int *displs = newArray(grid->p, 0);
+    sgInfo->displs = newArray(grid->p, 0);
 
     if (grid->myRank == 0)
     {
@@ -154,25 +161,27 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
         {
             for (int j = 0; j < grid->q; j++)
             {
-                displs[i * grid->q + j] = disp;
+                sgInfo->displs[i * grid->q + j] = disp;
                 disp++;
             }
 
             disp += (localMatrix->nRow - 1) * grid->q;
         }
     }
-
+    
     // We now scater the Matrix
-    MPI_Scatterv(matrix != NULL ? matrix->data : NULL, sendcounts, displs,
-                 subMatrix, localMatrix->data,
+    MPI_Scatterv(matrix != NULL ? matrix->data : NULL, sgInfo->sendRecCounts,
+                 sgInfo->displs,
+                 (sgInfo->subMatrix), localMatrix->data,
                  localMatrix->fullSize, MPI_INT, 0, grid->comm);
 
 #if VERBOSE
-    if (matrix != NULL) {
+
+    if (matrix != NULL)
+    {
         printf("Full matrix\n");
         printMatrix(matrix);
     }
-
     MPI_Barrier(grid->comm);
 
     for (int i = 0; i < grid->p; i++)
@@ -182,14 +191,32 @@ Matrix *scatterData(GridInfoType *grid, Matrix *matrix, Matrix *localMatrix)
             printf("CartRank: %d\n", grid->myRank);
             printMatrix(localMatrix);
         }
-
         MPI_Barrier(grid->comm);
     }
+
 #endif
 
-    free(displs);
-    free(sendcounts);
     MPI_Type_free(&subArray);
 
     return localMatrix;
+}
+
+Matrix *gatherData(Matrix *subMatrix, GridInfoType *grid)
+{
+    int size = grid->q * subMatrix->nCol;
+
+    Matrix *result = grid->myRank == 0 ? newMatrix(size, size, 0) : NULL;
+
+    replaceMatrixValue(subMatrix, INT_MAX, 0);
+
+    MPI_Gatherv(subMatrix->data, subMatrix->fullSize, MPI_INT,
+                result == NULL ? NULL : result->data, sgInfo->sendRecCounts,
+                sgInfo->displs, (sgInfo->subMatrix), 0, grid->comm);
+
+    freeArray(sgInfo->displs);
+    freeArray(sgInfo->sendRecCounts);
+    MPI_Type_free(&(sgInfo->subMatrix));
+    free(sgInfo);
+
+    return result;
 }
