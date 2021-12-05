@@ -9,12 +9,14 @@
 #include "basicFunc.h"
 #include "gridComm.h"
 
-
-/*
-    Function: Fox algorithm
-    ------------------------------------ 
-*/
-
-void Fox(int n, GridInfoType* grid, Matrix* local_A, Matrix* local_B, Matrix* local_C);
+/**
+ * @brief 
+ * 
+ * @param grid 
+ * @param localA 
+ * @param localB 
+ * @param localC 
+ */
+void fox(GridInfoType* grid, Matrix* localA, Matrix *localB, Matrix *localC);
 
 #endif

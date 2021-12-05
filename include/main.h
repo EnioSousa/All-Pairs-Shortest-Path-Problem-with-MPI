@@ -10,7 +10,7 @@
 #include <string.h>
 
 // If true then print the state of the program through its execution
-#define VERBOSE 0 
+#define VERBOSE 0
 
 // Can change the file to read here
 #define FILENAME "input6"

@@ -13,27 +13,30 @@ int main(int argc, char **argv)
     Matrix *matrix = NULL;
 
     int globalRank, nProc, matrixSize;
-    
+
     double timeStart, timeFinish;
 
     /* Initialize global communicator and read the matrix data */
-    MPI_Init(&argc, &argv); 
+    MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nProc);
     MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
+
+    int q = (int)sqrt(nProc);
+
+    if (q * q < nProc)
+    {
+        if (globalRank == 0)
+            printf("ERROR: Invalid configuration!\n");
+        MPI_Finalize();
+
+        return 0;
+    }
 
     if (globalRank == 0)
     {
         matrix = getData(FILENAME);
         matrixSize = matrix->nCol;
 
-		float Q = sqrt(nProc);
-		float fracPart = Q - (int)Q;
-
-		if( (fracPart != 0) || (matrixSize % (int)Q != 0) ){
-			printf("ERROR: Invalid configuration!\n");
-			return -1;
-		}
-		
         int *pos;
         for (int i = 0; i < matrixSize; i++)
         {
@@ -44,7 +47,7 @@ int main(int argc, char **argv)
                     setMatrixPos(matrix, i, x, INT_MAX); //Change value to infinite
             }
         }
-	}
+    }
 
 #if VERBOSE
     printf("World %d: starting\n", globalRank);
@@ -55,61 +58,72 @@ int main(int argc, char **argv)
     /* Construct grid communicator */
     GridInfoType *grid = newGrid();
     // Wait
-    
+
     MPI_Barrier(MPI_COMM_WORLD); /* Start timer */
-	timeStart = MPI_Wtime();
+    timeStart = MPI_Wtime();
 
     MPI_Bcast(&matrixSize, 1, MPI_INT, 0, grid->comm);
 
     // Scatter the data. Each process has a localMatrix that is a submatrix
     int localMatrixSize = matrixSize / grid->q;
     Matrix *local_A = scatterData(grid, matrix, newMatrix(localMatrixSize, localMatrixSize, 0));
+    /**
+     * ! Esta a falhar nesta chamada. O processo zero não sai daqui se 
+     * ! tentarmos correr com 16 processos. Ou seja nao conseguimos acabar 
+     * ! a execução. Algum erro com o malloc 
+     */
     Matrix *local_B = newMatrix(localMatrixSize, localMatrixSize, 0);
     copyMatrix(local_A, local_B);
 
     Matrix *local_C = newMatrix(localMatrixSize, localMatrixSize, INT_MAX);
 
-    for (int x = 1; x < matrixSize - 1; x++) //Fox algorithm
+    for (int x = 0; x < sqrt(matrixSize); x++) //Fox algorithm
     {
-        Fox(matrixSize, grid, local_A, local_B, local_C);
+        fox(grid, local_A, local_B, local_C);
         copyMatrix(local_C, local_A);
         copyMatrix(local_C, local_B);
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
     Matrix *result = gatherData(local_C, grid);
 
-	MPI_Barrier(MPI_COMM_WORLD);
-	timeFinish = MPI_Wtime();    /* Finish timer */
+    MPI_Barrier(MPI_COMM_WORLD);
+    timeFinish = MPI_Wtime(); /* Finish timer */
 
     if (grid->myRank == 0)
     {
 
-# if VERBOSE
-		char *outputFile = getOutputName();
-        
+        char *outputFile = getOutputName();
+
         Matrix *mOutput = getData(outputFile);
 
         if (!equalsMatrix(result, mOutput))
-        {   
-            printf("NOT EQUALS\n");
-            
+        {
+            printf("Incorrect result\n");
+
+#if VERBOSE
             printf("Result:\n");
             printMatrix(result);
             printf("Output:\n");
             printMatrix(mOutput);
-        }else{
-            printf("EQUALS\n");
+#endif
         }
-        
+        else
+        {
+            printf("Correct result\n");
+#if VERBOSE
+            printMatrix(result);
+#endif
+        }
+
         free(outputFile);
         freeMatrix(mOutput);
-#endif    
 
-		printMatrix(result);
-		printf("\nExecution time: %f\n", timeFinish - timeStart);
+        printf("Execution time: %f\n", timeFinish - timeStart);
         freeMatrix(result);
     }
-	
+
     freeGrid(grid);
     freeMatrix(matrix);
     freeMatrix(local_A);
@@ -130,26 +144,26 @@ Matrix *getData(char *fileName)
         matrix = readData(fileName);
 
 #if VERBOSE
-    printf("Matrix Read:\n");
+    printf("Matrix Read from file %s:\n", fileName);
     printMatrix(matrix);
 #endif
 
     return matrix;
 }
 
+char *getOutputName()
+{
 
-char *getOutputName(){
-	
-	char *inputName = FILENAME;
-	const char *number = inputName + 5; //Word "input" have 5 letters
+    char *inputName = FILENAME;
+    const char *number = inputName + 5; //Word "input" have 5 letters
 
-	int sizeOfOutput = strlen("output") + strlen(number);
-	char *outputName = (char *)malloc(sizeof(char) * (sizeOfOutput+1));
+    int sizeOfOutput = strlen("output") + strlen(number);
+    char *outputName = (char *)malloc(sizeof(char) * (sizeOfOutput + 1));
 
-	checkAlloc(outputName, "getOutputName", "outputName");
+    checkAlloc(outputName, "getOutputName", "outputName");
 
-	strcpy(outputName, "output");
-	strcat(outputName, number);
-		
-	return outputName;
+    strcpy(outputName, "output");
+    strcat(outputName, number);
+
+    return outputName;
 }
