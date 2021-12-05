@@ -6,7 +6,7 @@
 */
 
 Matrix *getData(char *fileName);
-char *getOutputName();
+char *getOutputName(char *fileName);
 
 int main(int argc, char **argv)
 {
@@ -34,7 +34,11 @@ int main(int argc, char **argv)
 
     if (globalRank == 0)
     {
-        matrix = getData(FILENAME);
+        if (argc < 2)
+            matrix = getData(FILENAME);
+        else
+            matrix = getData(argv[1]);
+
         matrixSize = matrix->nCol;
 
         int *pos;
@@ -94,8 +98,14 @@ int main(int argc, char **argv)
     if (grid->myRank == 0)
     {
 
-        char *outputFile = getOutputName();
+        char *outputFile;
 
+        if (argc < 2)
+            outputFile = getOutputName(FILENAME);
+
+        else
+            outputFile = getOutputName(argv[1]);
+            
         Matrix *mOutput = getData(outputFile);
 
         if (!equalsMatrix(result, mOutput))
@@ -151,10 +161,10 @@ Matrix *getData(char *fileName)
     return matrix;
 }
 
-char *getOutputName()
+char *getOutputName(char *fileName)
 {
 
-    char *inputName = FILENAME;
+    char *inputName = fileName;
     const char *number = inputName + 5; //Word "input" have 5 letters
 
     int sizeOfOutput = strlen("output") + strlen(number);
