@@ -43,7 +43,7 @@ runTestHome:
 run:
 	$(RP) $(RFLAGS) --oversubscribe ./$(EXE) $(FILENAME)
 
-compile: $(EXE)
+compile: $(OBJ_DIR) $(BIN_DIR) $(EXE) 
 
 # Create bin and obj directory in case they dont exist
 $(OBJ_DIR) $(BIN_DIR):
@@ -55,7 +55,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(DEP)
 
 # Link the object files into a executable. Also checks if 
 # the object directory exists, if not creates it
-$(EXE): $(OBJ) | $(OBJ_DIR)
+$(EXE): $(OBJ) 
 	$(CC) $^ -o $@ $(LFLAGS)
 
 
