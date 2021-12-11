@@ -45,16 +45,23 @@ void closeFile(FILE *fileName)
         fclose(fileName);
 }
 
-Matrix* readData(char *fileName)
+Matrix *readData(FILE *file) 
 {
-    FILE *inFile = openFile(fileName, "r");
-
     int size = 0;
-    fscanf(inFile, "%d", &size);
+    fscanf(file, "%d", &size);
 
     Matrix *matrix = newMatrix(size, size, 0);
 
-    readMatrixData(matrix, inFile);
+    readMatrixData(matrix, file);
+
+    return matrix;
+}
+
+Matrix* readDataFromFile(char *fileName)
+{
+    FILE *inFile = openFile(fileName, "r");
+
+    Matrix *matrix = readData(inFile);
 
     closeFile(inFile);
 
