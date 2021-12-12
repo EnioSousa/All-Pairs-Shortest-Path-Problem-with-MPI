@@ -131,7 +131,10 @@ int main(int argc, char **argv)
         printMatrix(result);
 #endif
 
+#if WANT_TIME
         printf("Execution time: %f\n", timeFinish - timeStart);
+ #endif       
+        
         freeMatrix(result);
     }
 
