@@ -1,12 +1,12 @@
 #include "main.h"
 
-/* 
+/*
     NOTE: You can change global definitions in main.h. Currently you can change
     file to read and VERBOSE mode.
 */
 
-Matrix *getData(char *fileName);
-char *getOutputName(char *fileName);
+char *getOutputName(char *inputName);
+int compareOutput(FILE *file, Matrix *matrix);
 
 int main(int argc, char **argv)
 {
@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 
     int q = (int)sqrt(nProc);
 
-    if (q * q < nProc) 
+    if (q * q < nProc)
     {
         if (globalRank == 0)
             printf("ERROR: Invalid configuration!\n");
@@ -35,9 +35,9 @@ int main(int argc, char **argv)
     if (globalRank == 0)
     {
         if (argc < 2)
-            matrix = getData(FILENAME);
+            matrix = readData(stdin);
         else
-            matrix = getData(argv[1]);
+            matrix = readDataFromFile(argv[1]);
 
         matrixSize = matrix->nCol;
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
                 pos = getMatrixPos(matrix, i, x);
 
                 if ((i != x) && (*pos == 0))
-                    setMatrixPos(matrix, i, x, INT_MAX); //Change value to infinite
+                    setMatrixPos(matrix, i, x, INT_MAX); // Change value to infinite
             }
         }
     }
@@ -78,8 +78,8 @@ int main(int argc, char **argv)
     copyMatrix(local_A, local_B);
 
     double maxIterations = log2((double)matrixSize - 1);
-    
-    for (int x = 0; x < maxIterations; x++) //Fox algorithm
+
+    for (int x = 0; x < maxIterations; x++) // Fox algorithm
     {
         fox(grid, local_A, local_B, local_C, temp);
         copyMatrix(local_C, local_A);
@@ -94,38 +94,34 @@ int main(int argc, char **argv)
 
     if (grid->myRank == 0)
     {
-
-        char *outputFile;
+#if WANT_COMPARE
+        FILE *file;
 
         if (argc < 2)
-            outputFile = getOutputName(FILENAME);
-
+        {
+            file = stdin;
+        }
         else
-            outputFile = getOutputName(argv[1]);
-            
-        Matrix *mOutput = getData(outputFile);
+        {
+            char *temp = getOutputName(argv[1]);
+            file = openFile(temp, "r");
+            free(temp);
+        }
 
-        if (!equalsMatrix(result, mOutput))
+        if (!compareOutput(file, result))
         {
             printf("Incorrect result\n");
-
-#if VERBOSE
-            printf("Result:\n");
-            printMatrix(result);
-            printf("Output:\n");
-            printMatrix(mOutput);
-#endif
         }
         else
         {
             printf("Correct result\n");
-#if VERBOSE
-            printMatrix(result);
-#endif
         }
+#endif
 
-        free(outputFile);
-        freeMatrix(mOutput);
+#if WANT_OUTPUT
+        printMatrix(result);
+#endif
+
 
         printf("Execution time: %f\n", timeFinish - timeStart);
         freeMatrix(result);
@@ -140,29 +136,24 @@ int main(int argc, char **argv)
     MPI_Finalize();
 }
 
-Matrix *getData(char *fileName)
+int compareOutput(FILE *file, Matrix *matrix)
 {
-    Matrix *matrix;
+    int temp;
 
-    if (fileName == NULL)
-        matrix = readData(FILENAME);
+    for (int i = 0; i < matrix->fullSize && fscanf(file, "%d", &temp) != EOF; i++)
+    {
+        if (*getMatrixPos(matrix, i / matrix->nRow, i % matrix->nCol) != temp)
+            return 0;
+    }
 
-    else
-        matrix = readData(fileName);
-
-#if VERBOSE
-    printf("Matrix Read from file %s:\n", fileName);
-    printMatrix(matrix);
-#endif
-
-    return matrix;
+    return 1;
 }
 
 char *getOutputName(char *fileName)
 {
 
     char *inputName = fileName;
-    const char *number = inputName + 5; //Word "input" have 5 letters
+    const char *number = inputName + 5; // Word "input" have 5 letters
 
     int sizeOfOutput = strlen("output") + strlen(number);
     char *outputName = (char *)malloc(sizeof(char) * (sizeOfOutput + 1));

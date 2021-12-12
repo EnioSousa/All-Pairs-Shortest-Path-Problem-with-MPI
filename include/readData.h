@@ -8,13 +8,21 @@
 #include "basicFunc.h"
 
 /**
+ * @brief Function reads data from an open file
+ * 
+ * @param file File to read
+ * @return Matrix object that contains the read values of the file
+ */
+Matrix* readData(FILE *file);
+
+/**
  * @brief Function will open a file, create a Matrix object and put 
  * the contents of the file in the Matrix. 
  * 
  * @param fileName The file name to read. File need to be in data directory
  * @return The Matrix object that contains the read values of the file
  */
-Matrix* readData(char *fileName);
+Matrix* readDataFromFile(char *fileName);
 
 /**
  * @brief Open a file with certain permissions

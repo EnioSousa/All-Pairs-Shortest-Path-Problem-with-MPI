@@ -12,7 +12,9 @@
 // If true then print the state of the program through its execution
 #define VERBOSE 0
 
-// Can change the file to read here
-#define FILENAME "input6"
+// If true then print the output machine
+#define WANT_OUTPUT 0
+// If true then we compare our output with the expected output
+#define WANT_COMPARE 1
 
 #endif
