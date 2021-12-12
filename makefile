@@ -34,18 +34,22 @@ runTestLab: compile
 	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input6
 	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input300
 	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input600
+	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input900
 	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input1200
 	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input4
 	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input6
 	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input300
 	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input600
+	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input900
 	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input1200
 	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input6
 	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input300
 	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input600
+	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input900
 	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input1200
 	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input300
 	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input600
+	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input900
 	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input1200
 
 
