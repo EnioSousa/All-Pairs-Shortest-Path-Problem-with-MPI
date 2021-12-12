@@ -18,4 +18,7 @@
 // If true then we compare our output with the expected output
 #define WANT_COMPARE 0
 
+// If true print execution time
+#define WANT_TIME 0
+
 #endif
