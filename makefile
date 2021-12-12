@@ -63,7 +63,7 @@ runTestHome: compile
 	$(RP) -np 16  --oversubscribe ./$(EXE) input600
 
 run: compile
-	$(RP) $(RFLAGS) --oversubscribe ./$(EXE) $(FILENAME)
+	$(RP) $(RFLAGS) --oversubscribe ./$(EXE) 
 
 compile: $(OBJ_DIR) $(BIN_DIR) $(EXE) 
 
