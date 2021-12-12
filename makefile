@@ -6,6 +6,8 @@ OBJ_DIR := obj
 BIN_DIR := bin
  # Headers file directory
 INCLUDE_DIR := include
+# Data directory
+DATA_DIR := data
 # Executable path name
 EXE := $(BIN_DIR)/fox
 
@@ -23,52 +25,41 @@ FILENAME := input300
 SRC := $(wildcard $(SRC_DIR)/*.c)
 DEP := $(wildcard $(INCLUDE_DIR)/*.h)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-.PHONY: all compile clean run runTestHome runTestLab
+.PHONY: all compile clean run runTestHome runTestLab testHome testLab
 
  # Compile and run
 all: compile
 
-runTestLab: compile
-	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input4
-	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input6
-	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input300
-	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input600
-	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input900
-	$(RP) -np 1 --hostfile ./hostfile --map-by node ./$(EXE) input1200
-	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input4
-	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input6
-	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input300
-	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input600
-	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input900
-	$(RP) -np 4 --hostfile ./hostfile --map-by node ./$(EXE) input1200
-	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input6
-	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input300
-	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input600
-	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input900
-	$(RP) -np 9 --hostfile ./hostfile --map-by node ./$(EXE) input1200
-	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input300
-	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input600
-	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input900
-	$(RP) -np 16 --hostfile ./hostfile --map-by node ./$(EXE) input1200
-
-
-runTestHome: compile
-	$(RP) -np 4  --oversubscribe ./$(EXE) input4
-	$(RP) -np 4  --oversubscribe ./$(EXE) input6
-	$(RP) -np 4  --oversubscribe ./$(EXE) input300
-	$(RP) -np 9  --oversubscribe ./$(EXE) input6
-	$(RP) -np 9  --oversubscribe ./$(EXE) input300
-	$(RP) -np 9  --oversubscribe ./$(EXE) input600
-	$(RP) -np 16 --oversubscribe ./$(EXE) input300
-	$(RP) -np 16  --oversubscribe ./$(EXE) input600
+compile: $(OBJ_DIR) $(BIN_DIR) $(EXE) 
 
 run: compile
 	$(RP) $(RFLAGS) --oversubscribe ./$(EXE) 
 
-compile: $(OBJ_DIR) $(BIN_DIR) $(EXE) 
+runTestLab: compile testLab
+runTestHome: compile testHome
+
+testLab: $(DATA_DIR)/input* 
+	for file in $^; do \
+		echo FILE: $$file; \
+		for number in 16 9 4; do \
+			echo NP: $$number; \
+			$(RP) -np $$number --hostfile ./hostfile --map-by node ./$(EXE) < $$file; \
+		done; \
+		echo; \
+	done
+
+testHome: $(DATA_DIR)/input* 
+	for file in $^; do \
+		echo FILE: $$file; \
+		for number in 16 9 4; do \
+			echo NP: $$number; \
+			$(RP) -np $$number  --oversubscribe ./$(EXE) < $$file; \
+		done; \
+		echo; \
+	done
 
 # Create bin and obj directory in case they dont exist
-$(OBJ_DIR) $(BIN_DIR):
+$(OBJ_DIR) $(BIN_DIR) $(DATA_DIR):
 	mkdir -p $@
 
 # Generate the object file without linking 
@@ -79,7 +70,6 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(DEP)
 # the object directory exists, if not creates it
 $(EXE): $(OBJ) 
 	$(CC) $^ -o $@ $(LFLAGS)
-
 
 clean:
 	@rm -vf $(BIN_DIR)/*
