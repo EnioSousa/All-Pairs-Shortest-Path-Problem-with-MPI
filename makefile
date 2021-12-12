@@ -30,7 +30,7 @@ OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
  # Compile and run
 all: compile
 
-compile: $(OBJ_DIR) $(BIN_DIR) $(EXE) 
+compile: $(OBJ_DIR) $(BIN_DIR) $(DATA_DIR) $(EXE) 
 
 run: compile
 	$(RP) $(RFLAGS) --oversubscribe ./$(EXE) 
