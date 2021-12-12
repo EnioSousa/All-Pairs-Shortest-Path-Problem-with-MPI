@@ -23,7 +23,6 @@ FILENAME := input300
 SRC := $(wildcard $(SRC_DIR)/*.c)
 DEP := $(wildcard $(INCLUDE_DIR)/*.h)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-
 .PHONY: all compile clean run runTestHome runTestLab
 
  # Compile and run

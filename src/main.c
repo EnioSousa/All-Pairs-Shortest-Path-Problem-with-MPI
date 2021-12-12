@@ -68,6 +68,15 @@ int main(int argc, char **argv)
 
     MPI_Bcast(&matrixSize, 1, MPI_INT, 0, grid->comm);
 
+    if (matrixSize % q != 0)
+    {
+        if (grid->myRank == 0)
+            printf("ERROR: Invalid configuration!!!\n");
+        MPI_Finalize();
+
+        return 0;
+    }
+
     // Scatter the data. Each process has a localMatrix that is a submatrix
     int localMatrixSize = matrixSize / grid->q;
     Matrix *local_A = scatterData(grid, matrix, newMatrix(localMatrixSize, localMatrixSize, 0));
@@ -121,7 +130,6 @@ int main(int argc, char **argv)
 #if WANT_OUTPUT
         printMatrix(result);
 #endif
-
 
         printf("Execution time: %f\n", timeFinish - timeStart);
         freeMatrix(result);

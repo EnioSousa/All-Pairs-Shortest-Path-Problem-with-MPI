@@ -13,8 +13,9 @@
 #define VERBOSE 0
 
 // If true then print the output machine
-#define WANT_OUTPUT 0
+#define WANT_OUTPUT 1
+
 // If true then we compare our output with the expected output
-#define WANT_COMPARE 1
+#define WANT_COMPARE 0
 
 #endif
