@@ -19,7 +19,7 @@ In the host file you can specify which computers you want to run the program.
 <Computer name 2> slots=<maximum number of threads>
 ```
 
-The following command runs each example available, in the data folder, in you local machine 
+The following command runs each example available, in the data folder, on you local machine 
 ```
 make runTestHome
 ```
